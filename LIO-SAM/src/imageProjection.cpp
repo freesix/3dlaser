@@ -77,8 +77,22 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(OusterPointXYZIRT,
     (uint8_t, ring, ring) (uint16_t, ambient, ambient) (uint32_t, range, range)
 )
 
+struct LivoxPointCustomXYZIRT{
+    PCL_ADD_POINT4D;
+    PCL_ADD_INTENSITY;
+    float time;
+    uint16_t ring;
+    uint16_t tag;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW 
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT(LivoxPointCustomXYZIRT,
+    (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
+    (uint32_t, time, time) (uint8_t, ring, ring) (uint16_t, tag, tag)
+)
+
 // Use the Velodyne point format as a common representation
-using PointXYZIRT = VelodynePointXYZIRT;
+using PointXYZIRT = LivoxPointCustomXYZIRT;
+
 
 // IMU数据队列长度
 const int queueLength = 2000;
@@ -96,9 +110,9 @@ private:
     rclcpp::CallbackGroup::SharedPtr callbackGroupImu;
     std::deque<sensor_msgs::msg::Imu> imuQueue;
     // 订阅原始雷达点云数据
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subLaserCloud;
+    rclcpp::Subscription<livox_ros_driver2::msg::CustomMsg>::SharedPtr subLaserCloud;
     rclcpp::CallbackGroup::SharedPtr callbackGroupLidar;
-    std::deque<sensor_msgs::msg::PointCloud2> cloudQueue;
+    std::deque<livox_ros_driver2::msg::CustomMsg> cloudQueue;
     // 订阅IMU里程计数据，来自imuPreintegration
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subImuOdom;
     rclcpp::CallbackGroup::SharedPtr callbackGroupImuOdom;
@@ -109,7 +123,7 @@ private:
     rclcpp::Publisher<lio_sam::msg::CloudInfo>::SharedPtr pubLaserCloudInfo;
     
     // 从点云队列中提取出当前点云帧做处理
-    sensor_msgs::msg::PointCloud2 currentCloudMsg;
+    livox_ros_driver2::msg::CustomMsg currentCloudMsg;
 
     // 记录每一帧点云从起始到结束过程所有的IMU数据，imuRotX,Y,Z是对这一段时间内的角速度累加的结果
     double *imuTime = new double[queueLength];
@@ -187,7 +201,7 @@ public:
             imuOdomTopic, qos_imu,
             std::bind(&ImageProjection::imuOdomHandler, this, std::placeholders::_1),
             imuOdomOpt);
-        subLaserCloud = create_subscription<sensor_msgs::msg::PointCloud2>(
+        subLaserCloud = create_subscription<livox_ros_driver2::msg::CustomMsg>(
             pointCloudTopic, qos_lidar,
             std::bind(&ImageProjection::cloudHandler, this, std::placeholders::_1),
             lidarOpt);
@@ -316,7 +330,7 @@ public:
      * 5、发布当前帧校正后点云，有效点和其他信息
      * 6、重置参数，接收每帧lidar数据都要重置这些参数
     **/
-    void cloudHandler(const sensor_msgs::msg::PointCloud2::SharedPtr laserCloudMsg)
+    void cloudHandler(const livox_ros_driver2::msg::CustomMsg::SharedPtr laserCloudMsg)
     {
         // 1、提取、转换点云为统一格式
         if (!cachePointCloud(laserCloudMsg))
@@ -348,7 +362,7 @@ public:
      * @return true 
      * @return false 
      */
-    bool cachePointCloud(const sensor_msgs::msg::PointCloud2::SharedPtr& laserCloudMsg)
+    bool cachePointCloud(const livox_ros_driver2::msg::CustomMsg::SharedPtr& laserCloudMsg)
     {
         // 这里在cloudQueue.size() <=2 时返回似乎没有太大作用，这个函数是在单线程执行器中被执行
         cloudQueue.push_back(*laserCloudMsg);
@@ -360,29 +374,26 @@ public:
         cloudQueue.pop_front();
 
         // 将点云消息县转换成统一的laserCloudIn格式
-        if (sensor == SensorType::VELODYNE)
+        if (sensor == SensorType::LIVOX)
         {
-            pcl::moveFromROSMsg(currentCloudMsg, *laserCloudIn);
-        }
-        else if (sensor == SensorType::OUSTER)
-        {
-            // 先使用moveFromROSMsg将ouster的PointCloud2信息包转成PCL格式
-            pcl::moveFromROSMsg(currentCloudMsg, *tmpOusterCloudIn);
-            // 将字段名称统一转成Velodyne的格式
-            laserCloudIn->points.resize(tmpOusterCloudIn->size());
-            laserCloudIn->is_dense = tmpOusterCloudIn->is_dense;
-            for (size_t i = 0; i < tmpOusterCloudIn->size(); i++)
-            {
-                auto &src = tmpOusterCloudIn->points[i];
-                auto &dst = laserCloudIn->points[i];
-                dst.x = src.x;
-                dst.y = src.y;
-                dst.z = src.z;
-                dst.intensity = src.intensity;
-                dst.ring = src.ring;
-                // 每个点的time字段记录的是该点距离该帧点云扫描起始时间的相对时间间隔
-                dst.time = src.t * 1e-9f;
-            }
+            laserCloudIn->clear();
+            laserCloudIn->resize(currentCloudMsg.point_num);
+            PointXYZIRT point;
+
+            laserCloudIn->header.frame_id=currentCloudMsg.header.frame_id;
+            laserCloudIn->header.stamp=(uint64_t)((currentCloudMsg.header.stamp.sec*1e9+
+                currentCloudMsg.header.stamp.nanosec)/1000);
+
+            for(uint i=0; i<currentCloudMsg.point_num-1; i++){
+                point.x = currentCloudMsg.points[i].x;
+                point.y = currentCloudMsg.points[i].y;
+                point.z = currentCloudMsg.points[i].z;
+                point.intensity = currentCloudMsg.points[i].reflectivity;
+                point.tag = currentCloudMsg.points[i].tag;
+                point.time = currentCloudMsg.points[i].offset_time*1e-9; 
+                point.ring = currentCloudMsg.points[i].line;
+                laserCloudIn->push_back(point);
+            } 
         }
         else
         {
@@ -406,7 +417,7 @@ public:
             RCLCPP_ERROR(get_logger(), "Point cloud is not in dense format, please remove NaN points first!");
             rclcpp::shutdown();
         }
-
+        /*
         // 是否包含ring字段
         // 点云的ring字段标明该点是由第几条激光线束成像的
         // LIOSAM中通过一条ring上的点之间的几个关系计算曲率，提取特征点
@@ -444,7 +455,7 @@ public:
             }
             if (deskewFlag == -1)
                 RCLCPP_WARN(get_logger(), "Point cloud timestamp not available, deskew function disabled, system will drift significantly!");
-        }
+        } */
 
         return true;
     }

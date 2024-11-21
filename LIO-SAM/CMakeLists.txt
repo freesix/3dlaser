@@ -31,6 +31,7 @@ find_package(Eigen REQUIRED)
 find_package(pcl_msgs REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(pcl_conversions REQUIRED)
+find_package(livox_ros_driver2 REQUIRED)
 
 
 include_directories(
@@ -41,23 +42,23 @@ rosidl_generate_interfaces(${PROJECT_NAME} "msg/CloudInfo.msg" "srv/SaveMap.srv"
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 add_executable(${PROJECT_NAME}_imageProjection src/imageProjection.cpp)
-ament_target_dependencies(${PROJECT_NAME}_imageProjection rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions)
+ament_target_dependencies(${PROJECT_NAME}_imageProjection rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions livox_ros_driver2)
 target_link_libraries(${PROJECT_NAME}_imageProjection ${cpp_typesupport_target})
 
 add_executable(${PROJECT_NAME}_featureExtraction src/featureExtraction.cpp)
-ament_target_dependencies(${PROJECT_NAME}_featureExtraction rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions)
+ament_target_dependencies(${PROJECT_NAME}_featureExtraction rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions livox_ros_driver2)
 target_link_libraries(${PROJECT_NAME}_featureExtraction ${cpp_typesupport_target})
 
 add_executable(${PROJECT_NAME}_imuPreintegration src/imuPreintegration.cpp)
-ament_target_dependencies(${PROJECT_NAME}_imuPreintegration rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM Eigen pcl_msgs pcl_conversions)
+ament_target_dependencies(${PROJECT_NAME}_imuPreintegration rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM Eigen pcl_msgs pcl_conversions livox_ros_driver2)
 target_link_libraries(${PROJECT_NAME}_imuPreintegration gtsam ${cpp_typesupport_target})
 
 add_executable(${PROJECT_NAME}_mapOptimization src/mapOptimization.cpp)
-ament_target_dependencies(${PROJECT_NAME}_mapOptimization rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM Eigen pcl_msgs pcl_conversions)
+ament_target_dependencies(${PROJECT_NAME}_mapOptimization rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM Eigen pcl_msgs pcl_conversions livox_ros_driver2)
 target_link_libraries(${PROJECT_NAME}_mapOptimization gtsam ${cpp_typesupport_target} OpenMP::OpenMP_CXX)
 
 add_executable(${PROJECT_NAME}_transformFusion src/transformFusion.cpp)
-ament_target_dependencies(${PROJECT_NAME}_transformFusion rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions)
+ament_target_dependencies(${PROJECT_NAME}_transformFusion rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_msgs visualization_msgs pcl_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL pcl_conversions livox_ros_driver2)
 target_link_libraries(${PROJECT_NAME}_transformFusion ${cpp_typesupport_target})
 
 

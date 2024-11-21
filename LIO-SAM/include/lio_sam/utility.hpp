@@ -37,6 +37,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "livox_ros_driver2/msg/custom_msg.hpp"
  
 #include <vector>
 #include <cmath>
@@ -60,7 +61,7 @@ using namespace std;
 
 typedef pcl::PointXYZI PointType;
 
-enum class SensorType { VELODYNE, OUSTER };
+enum class SensorType { VELODYNE, OUSTER, LIVOX };
 
 class ParamServer : public rclcpp::Node
 {
@@ -305,6 +306,9 @@ public:
         else if (sensorStr == "ouster")
         {
             sensor = SensorType::OUSTER;
+        }
+        else if(sensorStr == "livox"){
+            sensor = SensorType::LIVOX; 
         }
         else
         {
