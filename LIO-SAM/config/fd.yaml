@@ -68,9 +68,9 @@
     surfFeatureMinValidNum: 100                  # 平面特征点数量阈值
 
     # voxel filter paprams                       # 各个降采样器的voxel大小
-    odometrySurfLeafSize: 0.4                    # default: 0.4 - outdoor, 0.2 - indoor
-    mappingCornerLeafSize: 0.2                   # default: 0.2 - outdoor, 0.1 - indoor
-    mappingSurfLeafSize: 0.4                     # default: 0.4 - outdoor, 0.2 - indoor
+    odometrySurfLeafSize: 0.2                    # default: 0.4 - outdoor, 0.2 - indoor
+    mappingCornerLeafSize: 0.1                   # default: 0.2 - outdoor, 0.1 - indoor
+    mappingSurfLeafSize: 0.2                     # default: 0.4 - outdoor, 0.2 - indoor
 
     # robot motion constraint
     z_tollerance: 1000.0                          # meters, 限制z轴平移的大小

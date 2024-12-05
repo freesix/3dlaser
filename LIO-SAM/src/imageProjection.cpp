@@ -214,7 +214,7 @@ public:
         allocateMemory();
         resetParameters();
 
-        pcl::console::setVerbosityLevel(pcl::console::L_ERROR);
+        pcl::console::setVerbosityLevel(pcl::console::L_ERROR); // 设置pcl日志级别
     }
 
     /// @brief 为动态指针和动态数组分配内存

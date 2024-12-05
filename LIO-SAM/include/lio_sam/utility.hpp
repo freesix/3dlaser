@@ -357,7 +357,9 @@ public:
         + 将imu坐标系下的向量转换到雷达坐标系下。如果作者对这两者的定义刚好是相反的，那这里就没有问题。
         */
         Eigen::Quaterniond q_from(imu_in.orientation.w, imu_in.orientation.x, imu_in.orientation.y, imu_in.orientation.z);
-        Eigen::Quaterniond q_final = q_from * extQRPY.inverse();
+        Eigen::Quaterniond q_final = extQRPY;
+        // Eigen::Quaterniond q_final = q_from * extQRPY.inverse();
+        q_final.normalize();
         imu_out.orientation.x = q_final.x();
         imu_out.orientation.y = q_final.y();
         imu_out.orientation.z = q_final.z();

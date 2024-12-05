@@ -80,7 +80,7 @@ public:
     // 订阅IMU原始数据
     rclcpp::CallbackGroup::SharedPtr callbackGroupImu;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subImu;
-    // 订阅Lidar里程计（来自mapOptimization)
+    // 订阅Lidar里程计(来自mapOptimization)
     rclcpp::CallbackGroup::SharedPtr callbackGroupOdom;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subOdometry;
     // 发布IMU里程计
